@@ -1,4 +1,4 @@
-import 'package:build/internet_connection_checker.dart';
+import 'package:shitty_connection_checker/internet_connection_checker.dart';
 import 'package:test/test.dart';
 import 'package:universal_io/io.dart';
 
