@@ -77,7 +77,7 @@ void main() async {
     });
 
     test('''We should have listeners 1''', () {
-      listener1 = InternetConnectionChecker().onStatusChange.listen((_) {});
+      listener1 = InternetConnectionChecker().onStatusChange!.listen((_) {});
       expect(
         InternetConnectionChecker().hasListeners,
         isTrue,
@@ -85,8 +85,8 @@ void main() async {
     });
 
     test('''We should have listeners 2''', () {
-      listener1 = InternetConnectionChecker().onStatusChange.listen((_) {});
-      listener2 = InternetConnectionChecker().onStatusChange.listen((_) {});
+      listener1 = InternetConnectionChecker().onStatusChange!.listen((_) {});
+      listener2 = InternetConnectionChecker().onStatusChange!.listen((_) {});
       expect(
         InternetConnectionChecker().hasListeners,
         isTrue,
@@ -94,9 +94,9 @@ void main() async {
     });
 
     test('''We should have listeners 3''', () async {
-      listener1 = InternetConnectionChecker().onStatusChange.listen((_) {});
+      listener1 = InternetConnectionChecker().onStatusChange!.listen((_) {});
       await listener1!.cancel();
-      listener2 = InternetConnectionChecker().onStatusChange.listen((_) {});
+      listener2 = InternetConnectionChecker().onStatusChange!.listen((_) {});
       expect(
         InternetConnectionChecker().hasListeners,
         isTrue,
@@ -104,9 +104,9 @@ void main() async {
     });
 
     test('''We shouldn't have any listeners 2''', () async {
-      listener1 = InternetConnectionChecker().onStatusChange.listen((_) {});
+      listener1 = InternetConnectionChecker().onStatusChange!.listen((_) {});
       await listener1!.cancel();
-      listener2 = InternetConnectionChecker().onStatusChange.listen((_) {});
+      listener2 = InternetConnectionChecker().onStatusChange!.listen((_) {});
       await listener2!.cancel();
       expect(
         InternetConnectionChecker().hasListeners,
@@ -122,7 +122,7 @@ void main() async {
     });
 
     test('''We should have listeners 1 [isActivelyChecking]''', () {
-      listener1 = InternetConnectionChecker().onStatusChange.listen((_) {});
+      listener1 = InternetConnectionChecker().onStatusChange!.listen((_) {});
       expect(
         InternetConnectionChecker().isActivelyChecking,
         isTrue,
@@ -130,8 +130,8 @@ void main() async {
     });
 
     test('''We should have listeners 2 [isActivelyChecking]''', () {
-      listener1 = InternetConnectionChecker().onStatusChange.listen((_) {});
-      listener2 = InternetConnectionChecker().onStatusChange.listen((_) {});
+      listener1 = InternetConnectionChecker().onStatusChange!.listen((_) {});
+      listener2 = InternetConnectionChecker().onStatusChange!.listen((_) {});
       expect(
         InternetConnectionChecker().isActivelyChecking,
         isTrue,
@@ -139,9 +139,9 @@ void main() async {
     });
 
     test('''We should have listeners 3 [isActivelyChecking]''', () async {
-      listener1 = InternetConnectionChecker().onStatusChange.listen((_) {});
+      listener1 = InternetConnectionChecker().onStatusChange!.listen((_) {});
       await listener1!.cancel();
-      listener2 = InternetConnectionChecker().onStatusChange.listen((_) {});
+      listener2 = InternetConnectionChecker().onStatusChange!.listen((_) {});
       expect(
         InternetConnectionChecker().isActivelyChecking,
         isTrue,
@@ -150,9 +150,9 @@ void main() async {
 
     test('''We shouldn't have any listeners 2 [isActivelyChecking]''',
         () async {
-      listener1 = InternetConnectionChecker().onStatusChange.listen((_) {});
+      listener1 = InternetConnectionChecker().onStatusChange!.listen((_) {});
       await listener1!.cancel();
-      listener2 = InternetConnectionChecker().onStatusChange.listen((_) {});
+      listener2 = InternetConnectionChecker().onStatusChange!.listen((_) {});
       await listener2!.cancel();
       expect(
         InternetConnectionChecker().isActivelyChecking,

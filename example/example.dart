@@ -5,7 +5,7 @@ import 'package:build/internet_connection_checker.dart';
 Future<void> main() async {
   // Simple check to see if we have Internet
   print('The statement \'this machine is connected to the Internet\' is: ');
-  final bool isConnected = await InternetConnectionChecker().hasConnection;
+  final bool isConnected = await InternetConnectionChecker().hasConnection!;
   print(
     isConnected.toString(),
   );
@@ -23,7 +23,7 @@ Future<void> main() async {
 
   // actively listen for status updates
   StreamSubscription<InternetConnectionStatus> listener =
-      InternetConnectionChecker().onStatusChange.listen(
+      InternetConnectionChecker().onStatusChange!.listen(
     (InternetConnectionStatus status) {
       switch (status) {
         case InternetConnectionStatus.connected:

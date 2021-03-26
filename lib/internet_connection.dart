@@ -147,7 +147,7 @@ class InternetConnectionChecker {
   /// If at least one of the addresses is reachable
   /// we assume an internet connection is available and return `true`.
   /// `false` otherwise.
-  Future<bool> get hasConnection async {
+  Future<bool>? get hasConnection async {
     List<Future<AddressCheckResult>> requests = <Future<AddressCheckResult>>[];
 
     for (AddressCheckOptions addressOptions in addresses) {
@@ -181,7 +181,7 @@ class InternetConnectionChecker {
   /// [InternetConnectionStatus.connected].
   /// [InternetConnectionStatus.disconnected] otherwise.
   Future<InternetConnectionStatus> get connectionStatus async {
-    return await hasConnection
+    return await hasConnection!
         ? InternetConnectionStatus.connected
         : InternetConnectionStatus.disconnected;
   }
@@ -284,7 +284,7 @@ class InternetConnectionChecker {
   ///
   /// When all the listeners are removed from `onStatusChange`, the internal
   /// timer is cancelled and the stream does not emit events.
-  Stream<InternetConnectionStatus> get onStatusChange =>
+  Stream<InternetConnectionStatus>? get onStatusChange =>
       _statusController.stream;
 
   /// Returns true if there are any listeners attached to [onStatusChange]
