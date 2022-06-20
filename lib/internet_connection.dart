@@ -179,6 +179,10 @@ class InternetConnectionChecker {
   /// we assume an internet connection is available and return `true`.
   /// `false` otherwise.
   Future<bool> get hasConnection async {
+    if (kIsWeb) {
+      return html.window.navigator.onLine ?? false;
+    }
+
     final Completer<bool> result = Completer<bool>();
     int length = addresses.length;
 
