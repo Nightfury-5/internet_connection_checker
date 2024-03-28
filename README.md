@@ -63,6 +63,20 @@ if(result == true) {
 }
 ```
 
+On Android, for correct working in release mode, you must add INTERNET & ACCESS_NETWORK_STATE 
+permissions to AndroidManifest.xml, follow the next lines:
+
+```dart
+    <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <!-- Permissions for internet_connection_checker -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    
+    <application
+        ...
+```
+
 ## Purpose
 
 The reason this package exists is that `connectivity_plus` package cannot reliably determine if a data connection is actually available. More info on its page here: <https://pub.dev/packages/connectivity_plus>
