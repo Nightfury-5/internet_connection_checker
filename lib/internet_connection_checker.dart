@@ -1,9 +1,15 @@
 library internet_connection_checker;
 
+// Dart Packages
 import 'dart:async';
-import 'dart:io';
 
-part 'status_enum.dart';
-part 'address_check_options.dart';
+// Third Party Packages
+import 'package:connectivity_plus/connectivity_plus.dart';
+// Flutter Packages
+import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
+
+part 'address_check_option.dart';
 part 'address_check_result.dart';
 part 'internet_connection.dart';
+part 'internet_connection_status.dart';

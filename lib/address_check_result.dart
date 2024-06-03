@@ -1,20 +1,35 @@
-part of internet_connection_checker;
+part of 'internet_connection_checker.dart';
 
-/// Helper class that contains the address options and indicates whether
-/// opening a socket to it succeeded.
+/// Represents the result of an internet connection check.
+///
+/// This class encapsulates the outcome of an internet connection check
+/// performed with a specific [AddressCheckOption].
 class AddressCheckResult {
-  /// [AddressCheckResult] constructor
-  AddressCheckResult(
-    this.options, {
+  /// Creates an [AddressCheckResult] instance.
+  ///
+  /// Represents the result of an internet connection check.
+  ///
+  /// This class encapsulates the outcome of an internet connection check
+  /// performed with a specific [AddressCheckOption].
+  AddressCheckResult({
+    required this.option,
     required this.isSuccess,
   });
 
-  /// AddressCheckOptions
-  final AddressCheckOptions options;
+  /// The option used to check internet connection for this result.
+  final AddressCheckOption option;
 
-  /// bool val to store result
+  /// The result of the internet connection check for the given [option].
+  ///
+  /// If `true`, then HEAD request to the given [option] was successful.
+  /// Otherwise, it was unsuccessful.
   final bool isSuccess;
 
   @override
-  String toString() => 'AddressCheckResult($options, $isSuccess)';
+  String toString() {
+    return 'AddressCheckResult(\n'
+        '  option: ${option.toString().replaceAll('\n', '\n  ')},\n'
+        '  isSuccess: $isSuccess\n'
+        ')';
+  }
 }

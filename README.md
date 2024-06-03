@@ -7,7 +7,8 @@
 [![style: very good analysis](https://img.shields.io/badge/style-very_good_analysis-B22C89.svg)](https://pub.dev/packages/very_good_analysis)
 [![License: MIT](https://img.shields.io/badge/license-MIT-purple.svg)](https://opensource.org/licenses/MIT)
 
-A Pure Dart Utility library that checks for an Active Internet connection by opening a socket to a list of specified addresses, each with individual port and timeout. Defaults are provided for convenience.
+  A library designed for seamless internet connectivity checks. 
+  This library enables you to verify your internet connection.
 
 >*Note that this plugin is in beta and may still have
 a few issues. [Feedback][issues_tracker] is welcome.*

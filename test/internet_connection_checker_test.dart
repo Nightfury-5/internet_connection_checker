@@ -1,205 +1,91 @@
-import 'dart:async';
 
+import 'package:flutter_test/flutter_test.dart';
+import 'package:http/src/base_request.dart';
+import 'package:http/src/response.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
-import 'package:test/test.dart';
+
+import '__mocks__/test_http_client.dart';
 
 void main() {
-  group('internet_connection_checker', () {
-    StreamSubscription<InternetConnectionStatus>? listener1;
-    StreamSubscription<InternetConnectionStatus>? listener2;
+  group('InternetConnectionChecker', () {
+    group('hasInternetAccess', () {
+      test('returns true for valid URIs', () async {
+        final InternetConnectionChecker checker = InternetConnectionChecker();
+        expect(await checker.hasInternetAccess, true);
+      });
 
-    tearDown(() {
-      // destroy any active listener after each test
-      listener1?.cancel();
-      listener2?.cancel();
+      test('returns false for invalid URIs', () async {
+        final InternetConnectionChecker checker =
+            InternetConnectionChecker.createInstance(
+          customCheckOptions: <AddressCheckOption>[
+            AddressCheckOption(
+              uri: Uri.parse('https://www.example.com/nonexistent-page'),
+            ),
+          ],
+          useDefaultOptions: false,
+        );
+        expect(await checker.hasInternetAccess, false);
+      });
+
+      test('invokes responseStatusFn to determine success', () async {
+        const bool expectedStatus = true;
+        final InternetConnectionChecker checker =
+            InternetConnectionChecker.createInstance(
+          customCheckOptions: <AddressCheckOption>[
+            AddressCheckOption(
+              uri: Uri.parse('https://www.example.com/nonexistent-page'),
+              responseStatusFn: (Response response) => expectedStatus,
+            ),
+          ],
+          useDefaultOptions: false,
+        );
+
+        expect(await checker.hasInternetAccess, expectedStatus);
+      });
+
+      test('sends custom headers on request', () async {
+        await TestHttpClient.run((TestHttpClient client) async {
+          const bool expectedStatus = true;
+          const Map<String, String> expectedHeaders = <String, String>{
+            'Authorization': 'Bearer token',
+          };
+
+          client.responseBuilder = (BaseRequest req) {
+            for (final MapEntry<String, String> header
+                in expectedHeaders.entries) {
+              final String key = header.key;
+              if (!req.headers.containsKey(key) ||
+                  req.headers[key] != header.value) {
+                return TestHttpClient.createResponse(statusCode: 500);
+              }
+            }
+            return TestHttpClient.createResponse();
+          };
+          final InternetConnectionChecker checker =
+              InternetConnectionChecker.createInstance(
+            customCheckOptions: <AddressCheckOption>[
+              AddressCheckOption(
+                uri: Uri.parse('https://www.example.com'),
+                headers: expectedHeaders,
+              ),
+            ],
+            useDefaultOptions: false,
+          );
+
+          expect(await checker.hasInternetAccess, expectedStatus);
+        });
+      });
     });
 
-    test('''Shouldn't have any listeners attached''', () {
-      expect(
-        InternetConnectionChecker().hasListeners,
-        isFalse,
-      );
+    test('main constructor returns the same instance', () {
+      final InternetConnectionChecker checker = InternetConnectionChecker();
+      expect(checker, InternetConnectionChecker());
     });
 
-    test('''Unawaited call hasConnection should return a Future<bool>''', () {
-      expect(
-        InternetConnectionChecker().hasConnection,
-        isA<Future<bool>>(),
-      );
-    });
-
-    test('''Awaited call to hasConnection should return a bool''', () async {
-      expect(
-        await InternetConnectionChecker().hasConnection,
-        isA<bool>(),
-      );
-    });
-
-    test(
-        '''Unawaited call to connectionStatus '''
-        '''should return a Future<InternetConnectionStatus>''', () {
-      expect(
-        InternetConnectionChecker().connectionStatus,
-        isA<Future<InternetConnectionStatus>>(),
-      );
-    });
-
-    test(
-        '''Awaited call to connectionStatus '''
-        '''should return a Future<InternetConnectionStatus>''', () async {
-      expect(
-        await InternetConnectionChecker().connectionStatus,
-        isA<InternetConnectionStatus>(),
-      );
-    });
-
-    test('''We shouldn't have any listeners 1''', () {
-      expect(
-        InternetConnectionChecker().hasListeners,
-        isFalse,
-      );
-    });
-
-    test('''We should have listeners 1''', () {
-      listener1 = InternetConnectionChecker().onStatusChange.listen((_) {});
-      expect(
-        InternetConnectionChecker().hasListeners,
-        isTrue,
-      );
-    });
-
-    test('''We should have listeners 2''', () {
-      listener1 = InternetConnectionChecker().onStatusChange.listen((_) {});
-      listener2 = InternetConnectionChecker().onStatusChange.listen((_) {});
-      expect(
-        InternetConnectionChecker().hasListeners,
-        isTrue,
-      );
-    });
-
-    test('''We should have listeners 3''', () async {
-      listener1 = InternetConnectionChecker().onStatusChange.listen((_) {});
-      await listener1!.cancel();
-      listener2 = InternetConnectionChecker().onStatusChange.listen((_) {});
-      expect(
-        InternetConnectionChecker().hasListeners,
-        isTrue,
-      );
-    });
-
-    test('''We shouldn't have any listeners 2''', () async {
-      listener1 = InternetConnectionChecker().onStatusChange.listen((_) {});
-      await listener1!.cancel();
-      listener2 = InternetConnectionChecker().onStatusChange.listen((_) {});
-      await listener2!.cancel();
-      expect(
-        InternetConnectionChecker().hasListeners,
-        isFalse,
-      );
-    });
-
-    test('''We shouldn't have any listeners 1''', () {
-      expect(
-        InternetConnectionChecker().hasListeners,
-        isFalse,
-      );
-    });
-
-    test('''We should have listeners 1 [isActivelyChecking]''', () {
-      listener1 = InternetConnectionChecker().onStatusChange.listen((_) {});
-      expect(
-        InternetConnectionChecker().isActivelyChecking,
-        isTrue,
-      );
-    });
-
-    test('''We should have listeners 2 [isActivelyChecking]''', () {
-      listener1 = InternetConnectionChecker().onStatusChange.listen((_) {});
-      listener2 = InternetConnectionChecker().onStatusChange.listen((_) {});
-      expect(
-        InternetConnectionChecker().isActivelyChecking,
-        isTrue,
-      );
-    });
-
-    test('''We should have listeners 3 [isActivelyChecking]''', () async {
-      listener1 = InternetConnectionChecker().onStatusChange.listen((_) {});
-      await listener1!.cancel();
-      listener2 = InternetConnectionChecker().onStatusChange.listen((_) {});
-      expect(
-        InternetConnectionChecker().isActivelyChecking,
-        isTrue,
-      );
-    });
-
-    test('''We shouldn't have any listeners 2 [isActivelyChecking]''',
-        () async {
-      listener1 = InternetConnectionChecker().onStatusChange.listen((_) {});
-      await listener1!.cancel();
-      listener2 = InternetConnectionChecker().onStatusChange.listen((_) {});
-      await listener2!.cancel();
-      expect(
-        InternetConnectionChecker().isActivelyChecking,
-        isFalse,
-      );
-    });
-
-    test('''We should be able to set a custom timeout value''', () async {
-      const Duration timeout = Duration(seconds: 1);
-      final InternetConnectionChecker internetConnectionChecker =
-          InternetConnectionChecker.createInstance(
-        checkTimeout: timeout,
-      );
-      expect(
-        internetConnectionChecker.addresses.every(
-          (AddressCheckOptions element) => element.timeout == timeout,
-        ),
-        isTrue,
-      );
-    });
-
-    test('''We should be able to set a custom interval value''', () async {
-      const Duration interval = Duration(seconds: 1);
-      final InternetConnectionChecker internetConnectionChecker =
-          InternetConnectionChecker.createInstance(
-        checkInterval: interval,
-      );
-      expect(
-        internetConnectionChecker.checkInterval,
-        interval,
-      );
-    });
-
-    test('''We should be able to set a custom timeout value''', () async {
-      const Duration timeout = Duration(seconds: 1);
-      final InternetConnectionChecker internetConnectionChecker =
-          InternetConnectionChecker.createInstance(
-        checkTimeout: timeout,
-      );
-      expect(
-        internetConnectionChecker.checkTimeout,
-        timeout,
-      );
-      expect(
-        internetConnectionChecker.addresses.every(
-          (AddressCheckOptions element) => element.timeout == timeout,
-        ),
-        isTrue,
-      );
-    });
-
-    test('''We should be able to set custom addresses''', () async {
-      final List<AddressCheckOptions> addresses = <AddressCheckOptions>[
-        InternetConnectionChecker.DEFAULT_ADDRESSES.first,
-      ];
-      final InternetConnectionChecker internetConnectionChecker =
-          InternetConnectionChecker.createInstance(
-        addresses: addresses,
-      );
-      expect(
-        internetConnectionChecker.addresses,
-        addresses,
-      );
+    test('createInstance constructor returns different instances', () {
+      final InternetConnectionChecker checker =
+          InternetConnectionChecker.createInstance();
+      expect(checker, isNot(InternetConnectionChecker.createInstance()));
     });
   });
 }
