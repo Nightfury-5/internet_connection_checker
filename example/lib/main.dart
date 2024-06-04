@@ -1,11 +1,22 @@
 // Flutter Packages
+
+// Flutter imports:
 import 'package:flutter/material.dart';
 
+// Package imports:
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+// Project imports:
+import 'package:internet_connection_checker_example/bloc/check_connection_once_cubit/check_connection_once_cubit.dart';
+import 'package:internet_connection_checker_example/bloc/custom_response_internet_cubit/custom_response_internet_cubit.dart';
+import 'package:internet_connection_checker_example/bloc/custom_url_internet_cubit/custom_url_internet_cubit.dart';
+import 'package:internet_connection_checker_example/bloc/internet_cubit/internet_cubit.dart';
+import 'package:internet_connection_checker_example/pages/connection_stream_listener_page.dart';
+import 'pages/check_connection_once_page.dart';
+import 'pages/custom_response_internet_checker_page.dart';
+import 'pages/custom_uri_internet_connection_checker_page.dart';
+
 // Pages
-import 'pages/custom_success_criteria.dart';
-import 'pages/custom_uris.dart';
-import 'pages/listen_once.dart';
-import 'pages/listen_to_stream.dart';
 
 void main() {
   runApp(const MyApp());
@@ -31,10 +42,11 @@ class MyHomePage extends StatelessWidget {
   MyHomePage({super.key});
 
   final pages = {
-    'Listen Once': const ListenOnce(),
-    'Listen to Stream': const ListenToStream(),
-    'Custom URIs': const CustomURIs(),
-    'Custom Success Criteria': const CustomSuccessCriteria(),
+    'Listen to Stream': const ConnectionStreamListenerPage(),
+    'Custom URL Internet Connnectuon':
+        const CustomURIInternetConnectionCheckerPage(),
+    'Custom Success Criteria': const CustomResponseInternetCheckerPage(),
+    'Check Connection Once': const CheckConnectionOncePage(),
   };
 
   @override
@@ -56,7 +68,23 @@ class MyHomePage extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: () => Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (context) => entry.value,
+                    builder: (context) => MultiBlocProvider(
+                      providers: [
+                        BlocProvider(
+                          create: (_) => CheckConnectionOnceCubit(),
+                        ),
+                        BlocProvider(
+                          create: (_) => InternetCubit(),
+                        ),
+                        BlocProvider(
+                          create: (_) => CustomUrlInternetCubit(),
+                        ),
+                        BlocProvider(
+                          create: (_) => CustomResponseInternetCubit(),
+                        ),
+                      ],
+                      child: entry.value,
+                    ),
                   ),
                 ),
                 child: Text(entry.key),

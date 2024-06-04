@@ -55,7 +55,7 @@ class AddressCheckOption {
   AddressCheckOption({
     required this.uri,
     this.timeout = const Duration(seconds: 3),
-    this.headers = const {},
+    this.headers = const <String, String>{},
     ResponseStatusFn? responseStatusFn,
   }) : responseStatusFn = responseStatusFn ?? defaultResponseStatusFn;
 
@@ -76,7 +76,7 @@ class AddressCheckOption {
   ///   runApp(MyApp());
   /// }
   /// ```
-  static ResponseStatusFn defaultResponseStatusFn = (response) {
+  static ResponseStatusFn defaultResponseStatusFn = (http.Response response) {
     return response.statusCode == 200;
   };
 
