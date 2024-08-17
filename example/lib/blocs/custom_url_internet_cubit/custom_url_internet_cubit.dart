@@ -11,7 +11,7 @@ class CustomUrlInternetCubit extends Cubit<InternetConnectionStatus?> {
   CustomUrlInternetCubit() : super(null) {
     _subscription = InternetConnectionChecker.createInstance(
       customCheckOptions: [
-        AddressCheckOption(uri: Uri.parse('https://icanhazip.com')),
+        AddressCheckOption(uri: Uri.parse('https://1.1.1.1')),
         AddressCheckOption(
           uri: Uri.parse('https://jsonplaceholder.typicode.com/posts/1'),
         ),

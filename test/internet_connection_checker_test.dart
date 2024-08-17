@@ -1,4 +1,3 @@
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/src/base_request.dart';
 import 'package:http/src/response.dart';
@@ -8,10 +7,10 @@ import '__mocks__/test_http_client.dart';
 
 void main() {
   group('InternetConnectionChecker', () {
-    group('hasInternetAccess', () {
+    group('hasConnection', () {
       test('returns true for valid URIs', () async {
         final InternetConnectionChecker checker = InternetConnectionChecker();
-        expect(await checker.hasInternetAccess, true);
+        expect(await checker.hasConnection, true);
       });
 
       test('returns false for invalid URIs', () async {
@@ -24,7 +23,7 @@ void main() {
           ],
           useDefaultOptions: false,
         );
-        expect(await checker.hasInternetAccess, false);
+        expect(await checker.hasConnection, false);
       });
 
       test('invokes responseStatusFn to determine success', () async {
@@ -40,7 +39,7 @@ void main() {
           useDefaultOptions: false,
         );
 
-        expect(await checker.hasInternetAccess, expectedStatus);
+        expect(await checker.hasConnection, expectedStatus);
       });
 
       test('sends custom headers on request', () async {
@@ -72,7 +71,7 @@ void main() {
             useDefaultOptions: false,
           );
 
-          expect(await checker.hasInternetAccess, expectedStatus);
+          expect(await checker.hasConnection, expectedStatus);
         });
       });
     });

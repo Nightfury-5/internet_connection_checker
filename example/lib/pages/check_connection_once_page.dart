@@ -8,7 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 
 // Project imports:
-import 'package:internet_connection_checker_example/bloc/check_connection_once_cubit/check_connection_once_cubit.dart';
+import 'package:internet_connection_checker_example/blocs/check_connection_once_cubit/check_connection_once_cubit.dart';
 
 class CheckConnectionOncePage extends StatefulWidget {
   const CheckConnectionOncePage({super.key});
@@ -26,10 +26,9 @@ class _CheckConnectionOncePageState extends State<CheckConnectionOncePage> {
   }
 
   Future<void> _init() async {
-    final InternetConnectionStatus status =
-        await InternetConnectionChecker().internetStatus;
+    final bool isConnected = await InternetConnectionChecker().hasConnection;
     if (!mounted) return;
-    context.read<CheckConnectionOnceCubit>().updateStatus(status);
+    context.read<CheckConnectionOnceCubit>().updateStatus(isConnected);
   }
 
   @override
@@ -59,8 +58,7 @@ class _CheckConnectionOncePageState extends State<CheckConnectionOncePage> {
               const Text('Connection Status:'),
               Builder(
                 builder: (context) {
-                  return BlocBuilder<CheckConnectionOnceCubit,
-                      InternetConnectionStatus?>(
+                  return BlocBuilder<CheckConnectionOnceCubit, bool?>(
                     builder: (context, state) {
                       return state == null
                           ? const CircularProgressIndicator.adaptive()

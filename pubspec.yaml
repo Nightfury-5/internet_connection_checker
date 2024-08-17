@@ -7,20 +7,20 @@ repository: https://github.com/RounakTadvi/internet_connection_checker
 homepage: https://github.com/RounakTadvi/internet_connection_checker/tree/main
 
 environment:
-  sdk: ">=3.4.0 <4.0.0"
-  flutter: ">=1.17.0"
+  sdk: ^3.5.0
+  flutter: ^3.24.0
 
 dependencies:
-  connectivity_plus: ^6.0.3
+  connectivity_plus: ^6.0.5
   flutter:
     sdk: flutter    
-  http: ^1.2.1
+  http: ^1.2.2
 
 dev_dependencies:
   coverage: ^1.6.3
   flutter_test:
     sdk: flutter
-  very_good_analysis: ^5.1.0
   mockito:
+  very_good_analysis: ^6.0.0
 
 flutter:

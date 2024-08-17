@@ -1,6 +1,6 @@
 part of 'internet_connection_checker.dart';
 
-/// A utility class for checking internet connectivity status.
+/// A class for checking internet connectivity status.
 ///
 /// This class provides functionality to monitor and verify internet
 /// connectivity by checking reachability to various [Uri]s. It relies on the
@@ -19,9 +19,9 @@ part of 'internet_connection_checker.dart';
 /// ### Checking for internet connectivity
 ///
 /// ```dart
-/// import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
+/// import 'package:internet_connection_checker/internet_connection_checker.dart';
 ///
-/// bool result = await InternetConnectionChecker().hasInternetAccess;
+/// bool result = await InternetConnectionChecker().hasConnection;
 /// ```
 ///
 /// <br />
@@ -29,15 +29,15 @@ part of 'internet_connection_checker.dart';
 /// ### Listening for internet connectivity changes
 ///
 /// ```dart
-/// import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
+/// import 'package:internet_connection_checker/internet_connection_checker.dart';
 ///
 /// final listener = InternetConnectionChecker().onStatusChange.listen(
-///   (InternetStatus status) {
+///   (InternetConnectionStatus status) {
 ///     switch (status) {
-///       case InternetStatus.connected:
+///       case InternetConnectionStatus.connected:
 ///         // The internet is now connected
 ///         break;
-///       case InternetStatus.disconnected:
+///       case InternetConnectionStatus.disconnected:
 ///         // The internet is now disconnected
 ///         break;
 ///     }
@@ -71,7 +71,7 @@ class InternetConnectionChecker {
   /// - If [useDefaultOptions] is `false`, you must provide a non-empty
   /// [customCheckOptions] list.
   InternetConnectionChecker.createInstance({
-    this.checkInterval = const Duration(seconds: 5),
+    this.checkInterval = const Duration(seconds: 10),
     List<AddressCheckOption>? customCheckOptions,
     bool useDefaultOptions = true,
   }) : assert(
@@ -90,14 +90,26 @@ class InternetConnectionChecker {
 
   /// The default list of [Uri]s used for checking internet reachability.
   final List<AddressCheckOption> _defaultCheckOptions = <AddressCheckOption>[
-    AddressCheckOption(uri: Uri.parse('https://icanhazip.com/')),
     AddressCheckOption(
-      uri: Uri.parse('https://jsonplaceholder.typicode.com/todos/1'),
+      uri: Uri.parse(
+        'https://1.1.1.1',
+      ),
     ),
     AddressCheckOption(
-      uri: Uri.parse('https://pokeapi.co/api/v2/pokemon?limit=1'),
+      uri: Uri.parse(
+        'https://icanhazip.com/',
+      ),
     ),
-    AddressCheckOption(uri: Uri.parse('https://reqres.in/api/users/1')),
+    AddressCheckOption(
+      uri: Uri.parse(
+        'https://jsonplaceholder.typicode.com/todos/1',
+      ),
+    ),
+    AddressCheckOption(
+      uri: Uri.parse(
+        'https://reqres.in/api/users/1',
+      ),
+    ),
   ];
 
   /// The list of [Uri]s used for checking internet reachability.
@@ -124,7 +136,7 @@ class InternetConnectionChecker {
 
   /// Checks if the [Uri] specified in [option] is reachable.
   ///
-  /// Returns a [Future] that completes with an [InternetCheckResult] indicating
+  /// Returns a [Future] that completes with an [AddressCheckResult] indicating
   /// whether the host is reachable or not.
   Future<AddressCheckResult> _checkReachabilityFor(
     AddressCheckOption option,
@@ -156,7 +168,7 @@ class InternetConnectionChecker {
   ///
   /// Returns a [Future] that completes with a boolean value indicating
   /// whether internet access is available or not.
-  Future<bool> get hasInternetAccess async {
+  Future<bool> get hasConnection async {
     final Completer<bool> completer = Completer<bool>();
     int length = _internetCheckOptions.length;
 
@@ -181,10 +193,10 @@ class InternetConnectionChecker {
 
   /// Returns the current internet connection status.
   ///
-  /// Returns a [Future] that completes with the [InternetStatus] indicating
+  /// Returns a [Future] that completes with the [InternetConnectionStatus] indicating
   /// the current internet connection status.
-  Future<InternetConnectionStatus> get internetStatus async =>
-      await hasInternetAccess
+  Future<InternetConnectionStatus> get connectionStatus async =>
+      await hasConnection
           ? InternetConnectionStatus.connected
           : InternetConnectionStatus.disconnected;
 
@@ -195,7 +207,7 @@ class InternetConnectionChecker {
     _startListeningToConnectivityChanges();
     _timerHandle?.cancel();
 
-    final InternetConnectionStatus currentStatus = await internetStatus;
+    final InternetConnectionStatus currentStatus = await connectionStatus;
 
     if (!_statusController.hasListener) return;
 

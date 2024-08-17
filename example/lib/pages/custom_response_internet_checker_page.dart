@@ -10,7 +10,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 
 // Project imports:
-import 'package:internet_connection_checker_example/bloc/custom_response_internet_cubit/custom_response_internet_cubit.dart';
+import 'package:internet_connection_checker_example/blocs/custom_response_internet_cubit/custom_response_internet_cubit.dart';
 
 // This Package
 
