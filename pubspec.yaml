@@ -8,7 +8,7 @@ homepage: https://github.com/RounakTadvi/internet_connection_checker/tree/main
 
 environment:
   sdk: ^3.5.0
-  flutter: ^3.24.0
+  flutter: ">=1.17.0"
 
 dependencies:
   connectivity_plus: ^6.0.5
