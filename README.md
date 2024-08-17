@@ -38,9 +38,7 @@ the device is currently connected to the global network, e.i. has access to the 
 
 ## Demo
 
-<video width="" height="" controls>
-  <source src="https://raw.githubusercontent.com/RounakTadvi/internet_connection_checker/release/2.0.0/assets/demo.mp4" type="video/mp4">
-</video>
+[![Demo](https://raw.githubusercontent.com/RounakTadvi/internet_connection_checker/release/2.0.0/assets/thumbnail.png)](https://raw.githubusercontent.com/RounakTadvi/internet_connection_checker/release/2.0.0/assets/demo.mp4)
 
 ## Quick start
 
