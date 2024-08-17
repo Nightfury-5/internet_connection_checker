@@ -75,9 +75,10 @@ The InternetConnectionChecker package is particularly useful in scenarios where 
 
 See `example` folder for one specific example which illustrates how to retry page refresh when internet connection is available. The example files paths are listed below:
 
+```
 example/lib/blocs/fetch_todos_cubit.dart
 example/lib/pages/auto_refresh_when_network_is_available_page.dart
-
+```
 
 ### Singleton Basic Usage example
 
