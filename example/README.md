@@ -1,6 +1,6 @@
 # internet_connection_checker_example
 
-Illustrates the usuage of the library
+Illustrates the useage of the library
 
 ## Getting Started
 

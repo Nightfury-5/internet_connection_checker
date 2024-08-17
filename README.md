@@ -69,7 +69,7 @@ The reason this package exists is that `connectivity_plus` package cannot reliab
 
 The `InternetConnectionChecker` can be used as a singleton or can be instantiated with a custom instance with your curated `AddressCheckOption`'s.
 
-### Best usecase of usage with Flutter Bloc/Cubit
+### Best usage with Flutter Bloc/Cubit
 
 The InternetConnectionChecker package is particularly useful in scenarios where you need to handle changes in network connectivity dynamically. For instance, you can use it to refresh the page or trigger specific actions when the device goes offline and then reconnects to the internet. This is useful for applications where real-time updates or data synchronization is critical.
 
