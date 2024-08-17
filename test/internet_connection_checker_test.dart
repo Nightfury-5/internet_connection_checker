@@ -18,7 +18,7 @@ void main() {
             InternetConnectionChecker.createInstance(
           customCheckOptions: <AddressCheckOption>[
             AddressCheckOption(
-              uri: Uri.parse('https://www.example.com/nonexistent-page'),
+              uri: Uri.parse('https://www.example.com//nonexistent-pagee'),
             ),
           ],
           useDefaultOptions: false,
