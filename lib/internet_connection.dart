@@ -75,7 +75,8 @@ class InternetConnectionChecker {
     List<AddressCheckOption>? customCheckOptions,
     bool useDefaultOptions = true,
   }) : assert(
-          useDefaultOptions || customCheckOptions?.isNotEmpty == true,
+          useDefaultOptions ||
+              (customCheckOptions?.isNotEmpty ?? false) == true,
           'You must provide a list of options if you are not using the '
           'default ones.',
         ) {
