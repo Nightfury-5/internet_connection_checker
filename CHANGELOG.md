@@ -1,3 +1,10 @@
+## 2.0.0
+
+- Supports Android, iOS, MacOS, Web, Linux & Windows
+- Added best usage example with bloc/cubit, check README.md to know more.
+- Updated Documentation.
+- Update dependencies to the latest release.
+
 ## 1.0.0+1
 
 - Updated Documentation (README.md)

@@ -1,35 +1,26 @@
-name: Dart CI
+name: ci
 
-on: [push]
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  pull_request:
+    branches:
+      - main
 
 jobs:
+  semantic_pull_request:
+    uses: VeryGoodOpenSource/very_good_workflows/.github/workflows/semantic_pull_request.yml@v1
+
+  spell-check:
+    uses: VeryGoodOpenSource/very_good_workflows/.github/workflows/spell_check.yml@v1
+    with:
+      includes: "**/*.md"
+      modified_files_only: false
+
   build:
-    runs-on: ubuntu-latest
-    container:
-      image: dart:latest
-      
-    steps:
-      - uses: actions/checkout@v2      
-      - name: Install Dependencies
-        run: dart pub get
-      
-      - name: Format
-        run: dart format --set-exit-if-changed .
-      
-      - name: Activate coverage 
-        run: dart pub global activate coverage
-
-      - name: Run tests
-        run: dart pub global run coverage:test_with_coverage
-      
-      - name: Check Code Coverage
-        uses: VeryGoodOpenSource/very_good_coverage@v1.1.1
-        with:
-          path: "./coverage/lcov.info"
-          min_coverage: 80
-
-      - name: Upload coverage to Codecov 
-        uses: codecov/codecov-action@v1.0.2
-        with:
-          token: ${{secrets.CODECOV_TOKEN}}
-          file: coverage/lcov.info
+    uses: VeryGoodOpenSource/very_good_workflows/.github/workflows/flutter_package.yml@v1
+    with:
+      flutter_channel: stable
+      min_coverage: 50

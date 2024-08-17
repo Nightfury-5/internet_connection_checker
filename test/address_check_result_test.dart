@@ -1,27 +1,47 @@
-import 'dart:io';
-
+import 'package:flutter_test/flutter_test.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
-import 'package:test/test.dart';
 
 void main() {
-  test(
-    'should verify toString() method',
-    () {
-      // Setup - Arrange
-      final InternetAddress tInternetAddress = InternetAddress('1.1.1.1');
-      const int DEFAULT_PORT = 43;
-      const bool isSuccess = true;
-      final AddressCheckOptions tOptions = AddressCheckOptions(
-        address: tInternetAddress,
-        port: DEFAULT_PORT,
+  group('AddressCheckResult', () {
+    test('toString() returns correct string representation', () {
+      final AddressCheckOption option = AddressCheckOption(
+        uri: Uri.parse('https://example.com'),
+      );
+      final AddressCheckResult result = AddressCheckResult(
+        option: option,
+        isSuccess: true,
       );
 
-      final AddressCheckResult tResult =
-          AddressCheckResult(tOptions, isSuccess: isSuccess);
-      // Action - Act
+      const String expectedString = 'AddressCheckResult(\n'
+          '  option: AddressCheckOption(\n'
+          '    uri: https://example.com,\n'
+          '    timeout: 0:00:03.000000,\n'
+          '    headers: {}\n'
+          '  ),\n'
+          '  isSuccess: true\n'
+          ')';
 
-      // Result - Assert
-      expect(tResult.toString(), 'AddressCheckResult($tOptions, $isSuccess)');
-    },
-  );
+      expect(result.toString(), expectedString);
+    });
+
+    test('with different options are not equal', () {
+      final AddressCheckOption option1 = AddressCheckOption(
+        uri: Uri.parse('https://example.com'),
+      );
+      final AddressCheckOption option2 = AddressCheckOption(
+        uri: Uri.parse('https://example.org'),
+        timeout: const Duration(seconds: 5),
+      );
+      final AddressCheckResult result1 = AddressCheckResult(
+        option: option1,
+        isSuccess: true,
+      );
+      final AddressCheckResult result2 = AddressCheckResult(
+        option: option2,
+        isSuccess: true,
+      );
+
+      expect(result1, isNot(equals(result2)));
+    });
+  });
 }
