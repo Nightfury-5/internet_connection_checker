@@ -4,12 +4,12 @@ import 'package:internet_connection_checker_example/blocs/fetch_todos_cubit/fetc
 import 'package:internet_connection_checker_example/models/todo.dart';
 
 class AutoRefreshWhenNetworkIsAvailablePage extends StatelessWidget {
-  const AutoRefreshWhenNetworkIsAvailablePage();
+  const AutoRefreshWhenNetworkIsAvailablePage({super.key});
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           'Auto Refresh Example',
         ),
       ),
@@ -19,7 +19,7 @@ class AutoRefreshWhenNetworkIsAvailablePage extends StatelessWidget {
           listener: (context, state) {
             if (state is FetchTodosSuccess) {
               if (state.isRetry) {
-                final SnackBar snackBar = SnackBar(
+                const SnackBar snackBar = SnackBar(
                   content: Text(
                     'You are back online.',
                   ),
@@ -36,15 +36,15 @@ class AutoRefreshWhenNetworkIsAvailablePage extends StatelessWidget {
           builder: (context, state) {
             switch (state) {
               case FetchTodosInitial():
-                return Center(
+                return const Center(
                   child: CircularProgressIndicator.adaptive(),
                 );
               case FetchTodosLoading():
-                return Center(
+                return const Center(
                   child: CircularProgressIndicator.adaptive(),
                 );
               case FetchTodosEmpty():
-                return Center(
+                return const Center(
                   child: Text('No Todos'),
                 );
               case FetchTodosSuccess(todos: List<Todo> todos):
@@ -65,11 +65,12 @@ class AutoRefreshWhenNetworkIsAvailablePage extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: <Widget>[
-                    Align(
+                    const Align(
                       child: Text(
                         'No Internet',
                       ),
                     ),
+                    SizedBox(height: 8,),
                     Align(
                       child: ElevatedButton(
                         onPressed: () {
@@ -77,7 +78,7 @@ class AutoRefreshWhenNetworkIsAvailablePage extends StatelessWidget {
                                 isRetry: true,
                               );
                         },
-                        child: Text('Retry'),
+                        child: const Text('Retry'),
                       ),
                     ),
                   ],

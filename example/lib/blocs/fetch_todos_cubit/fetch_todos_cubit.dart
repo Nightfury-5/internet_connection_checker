@@ -77,7 +77,13 @@ class FetchTodosCubit extends Cubit<FetchTodosState> {
     } on SocketException {
       emit(
         FetchTodosError(
-          exception: SocketException(''),
+          exception: const SocketException(''),
+        ),
+      );
+    } on http.ClientException {
+      emit(
+        FetchTodosError(
+          exception: const SocketException(''),
         ),
       );
     }
