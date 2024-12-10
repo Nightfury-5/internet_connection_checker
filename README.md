@@ -23,7 +23,7 @@
     - [Internet Connection Availability changes](#listen-to-stream-for-internet-connection-availability-changes)
     - [Creating a Custom Instance](#creating-a-custom-instance)
     - [Slow Internet Connectivity detection ](#enable-detection-for-slow-internet-connectivity)
-    
+    - [Using requireAllAddressesToRespond ](#Using-requirealladdressestorespond)  
   - [Features and bugs](#features-and-bugs)
 
 ## Description
