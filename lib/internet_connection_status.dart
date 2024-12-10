@@ -9,4 +9,7 @@ enum InternetConnectionStatus {
 
   /// disconnected from internet
   disconnected,
+
+  /// slow internet
+  slow,
 }

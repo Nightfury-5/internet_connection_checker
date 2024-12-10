@@ -1,8 +1,9 @@
 name: internet_connection_checker
 description: >-
-  A library designed for seamless internet connectivity checks. 
-  This library enables you to verify your internet connection.
-version: 2.0.0
+  A library designed for seamless internet connectivity checks.  This library
+  enables you to verify your internet connection and detect slow internet
+  connection.
+version: 3.0.0
 repository: https://github.com/RounakTadvi/internet_connection_checker
 homepage: https://github.com/RounakTadvi/internet_connection_checker/tree/main
 
@@ -11,16 +12,17 @@ environment:
   flutter: ">=1.17.0"
 
 dependencies:
-  connectivity_plus: ^6.0.5
+  connectivity_plus: ^6.1.0
+  equatable: ^2.0.7
   flutter:
-    sdk: flutter    
+    sdk: flutter
   http: ^1.2.2
 
 dev_dependencies:
   coverage: ^1.6.3
   flutter_test:
     sdk: flutter
-  mockito:
+  mocktail: ^1.0.4
   very_good_analysis: ^6.0.0
 
 flutter:

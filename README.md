@@ -6,7 +6,8 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-purple.svg)](https://opensource.org/licenses/MIT)
 
   A library designed for seamless internet connectivity checks. 
-  This library enables you to verify your internet connection.
+  This library enables you to verify your internet connection
+  and can also detect slow internet connectivity.
 
 ### Table of contents
 
@@ -20,7 +21,8 @@
     - [Singleton example](#singleton-basic-usage-example)
     - [Internet Connection Availability changes](#listen-to-stream-for-internet-connection-availability-changes)
     - [Creating a Custom Instance](#creating-a-custom-instance)
-    - [Custom Response Code Logic](#custom-response-code-logic)
+    - [Slow Internet Connectivity detection ](#enable-detection-for-slow-internet-connectivity)
+    
   - [Features and bugs](#features-and-bugs)
 
 ## Description
@@ -65,6 +67,26 @@ permissions to AndroidManifest.xml, follow the next lines:
         ...
 ```
 
+## Mac OS Configuration
+
+On MacOS, you'll need to add the following entry to your ```DebugProfile.entitlements``` and ```Release.entitlements``` (located under macos/Runner) to allow access to internet.
+
+```dart
+  <key>com.apple.security.network.server</key>
+  <true/>
+```
+
+Example:
+
+```dart
+  <plist version="1.0">
+    <dict>
+	    <key>com.apple.security.app-sandbox</key>
+	    <true/>
+    </dict>
+  </plist>
+```
+
 ## Purpose
 
 The reason this package exists is that `connectivity_plus` package cannot reliably determine if a data connection is actually available. More info on its page here: <https://pub.dev/packages/connectivity_plus>.
@@ -90,7 +112,7 @@ example/lib/pages/auto_refresh_when_network_is_available_page.dart
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 
 void main() async {
-  bool isConnected = await InternetConnectionChecker().hasConnection;
+  final bool isConnected = await InternetConnectionChecker.instance.hasConnection;
   if (isConnected) {
     print('Device is connected to the internet');
   } else {
@@ -106,7 +128,7 @@ void main() async {
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 
 void main() {
-  final connectionChecker = InternetConnectionChecker();
+  final connectionChecker = InternetConnectionChecker.instance;
 
   final subscription = connectionChecker.onStatusChange.listen(
     (InternetConnectionStatus status) {
@@ -124,8 +146,8 @@ void main() {
 
 ```
 
-*Note: Remember to dispose of any listeners,
-when they're not needed to prevent memory leaks,
+*Note: Remember to dispose of any listeners and the instance of InternetConnectionChecker,
+when they're not required to prevent memory leaks.
 e.g. in a* `StatefulWidget`'s *dispose() method*:
   
 ```dart
@@ -133,6 +155,7 @@ e.g. in a* `StatefulWidget`'s *dispose() method*:
 @override
 void dispose() {
   listener.cancel();
+  connectionChecker.dispose();
   super.dispose();
 }
 ...
@@ -147,13 +170,12 @@ import 'package:internet_connection_checker/internet_connection_checker.dart';
 
 void main() async {
   final customChecker = InternetConnectionChecker.createInstance(
-    customCheckOptions: [
-      AddressCheckOption(uri: Uri.parse('https://1.1.1.1')),
+    addresses: [
+      AddressCheckOption(uri: Uri.parse('https://api.github.com/users/octocat')),
       AddressCheckOption(
-        uri: Uri.parse('https://jsonplaceholder.typicode.com/posts/1'),
+        uri: Uri.parse('https://api.agify.io/?name=michael'),
       ),
     ],
-    useDefaultOptions: false,
   );
 
   bool isConnected = await customChecker.hasConnection;
@@ -161,31 +183,72 @@ void main() async {
 }
 
 ```
+*Note: Remember to dispose of InternetConnectionChecker instance,
+when it's not needed to prevent memory leaks,
+e.g. in a* `StatefulWidget`'s *dispose() method*:
+  
+```dart
+...
+@override
+void dispose() {
+  super.dispose();
+  customChecker.dispose();
+}
+...
+```
 
-### Custom Response Code Logic
+### Enable detection for slow internet connectivity
+
+To create a custom instance of InternetConnectionChecker with detection for slow internet connectivity:
 
 ```dart
-
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 
 void main() async {
   final customChecker = InternetConnectionChecker.createInstance(
-    customCheckOptions: [
-      AddressCheckOption(
-        uri: Uri.parse('https://img.shields.io/pub/'),
-        responseStatusFn: (response) {
-          return response.statusCode == 404;
-        },
+    slowConnectionConfig: SlowConnectionConfig(
+        enableToCheckForSlowConnection: true,
+        slowConnectionThreshold: const Duration(seconds: 1),
       ),
-    ],
-    useDefaultOptions: false,
   );
 
   bool isConnected = await customChecker.hasConnection;
-  print('Custom response logic connected: $isConnected');
+  print('Custom instance connected: $isConnected');
 }
+```
 
+Note: Ensure your slowConnectionThreshold's duration is not more than the checkInternal and checkTimeout Duration.
 
+### Using requireAllAddressesToRespond
+
+To ensure that the internet connection status is marked as connected only when all specified addresses are reachable, you can enable the requireAllAddressesToRespond configuration.
+
+```dart
+import 'package:internet_connection_checker/internet_connection_checker.dart';
+
+void main() async {
+  // Create a custom instance with requireAllAddressesToRespond set to true
+  /// Remember to dispose of [customChecker] instance, when it's not needed 
+  /// to prevent memory leaks.
+  final customChecker = InternetConnectionChecker.createInstance(
+    requireAllAddressesToRespond: true,
+    addresses: [
+      AddressCheckOption(uri: Uri.parse('https://dummyapi.online/api/movies/1')),
+      AddressCheckOption(
+        uri: Uri.parse('https://jsonplaceholder.typicode.com/albums/1'),
+      ),
+    ],
+  );
+
+  // Check connectivity
+  final bool isConnected = await customChecker.hasConnection;
+
+  if (isConnected) {
+    print('All specified backend servers are reachable.');
+  } else {
+    print('Not all specified backend servers are reachable.');
+  }
+}
 ```
 
 See `example` folder for more examples.
@@ -197,5 +260,7 @@ Please file feature requests and bugs at the [issue tracker][issues_tracker].
 [issues_tracker]: https://github.com/RounakTadvi/internet_connection_checker/issues
 [pull_requests]: https://github.com/RounakTadvi/internet_connection_checker/pulls
 
-# Credits
+## Credits
 >* NOTE: This package is a continuation of [data_connection_checker](https://github.com/komapeb/data_connection_checker) which currently is not continued. * 
+
+Web platform support for this package has been inspired by the [internet_connection_checker_plus](https://github.com/OutdatedGuy/internet_connection_checker_plus) library.

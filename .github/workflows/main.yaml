@@ -9,18 +9,63 @@ on:
     branches:
       - main
 
+  push:
+    branches:
+      - main
+
 jobs:
   semantic_pull_request:
+    if: github.event_name == 'pull_request'
     uses: VeryGoodOpenSource/very_good_workflows/.github/workflows/semantic_pull_request.yml@v1
 
   spell-check:
+    if: github.event_name == 'pull_request'
     uses: VeryGoodOpenSource/very_good_workflows/.github/workflows/spell_check.yml@v1
     with:
       includes: "**/*.md"
       modified_files_only: false
 
   build:
+    if: github.event_name == 'pull_request'
     uses: VeryGoodOpenSource/very_good_workflows/.github/workflows/flutter_package.yml@v1
     with:
       flutter_channel: stable
-      min_coverage: 50
+      min_coverage: 100
+
+  codecov_coverage:
+    if: github.ref == 'refs/heads/main'
+    name: Build and Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable # or: beta, master (or main)
+      - run: flutter --version
+      
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Format Code
+        run: dart format --set-exit-if-changed .
+
+      - name: Run Tests with Coverage
+        run: |
+          flutter pub global activate coverage
+          flutter test --coverage
+          
+      - name: Check Code Coverage
+        uses: VeryGoodOpenSource/very_good_coverage@v2
+        with:
+          path: "./coverage/lcov.info"
+          min_coverage: 90
+
+      - name: Upload Coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: coverage/lcov.info
+          flags: flutter
+          name: codecov-umbrella  

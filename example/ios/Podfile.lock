@@ -2,20 +2,26 @@ PODS:
   - connectivity_plus (0.0.1):
     - Flutter
     - FlutterMacOS
+  - cupertino_http (0.0.1):
+    - Flutter
   - Flutter (1.0.0)
 
 DEPENDENCIES:
   - connectivity_plus (from `.symlinks/plugins/connectivity_plus/darwin`)
+  - cupertino_http (from `.symlinks/plugins/cupertino_http/ios`)
   - Flutter (from `Flutter`)
 
 EXTERNAL SOURCES:
   connectivity_plus:
     :path: ".symlinks/plugins/connectivity_plus/darwin"
+  cupertino_http:
+    :path: ".symlinks/plugins/cupertino_http/ios"
   Flutter:
     :path: Flutter
 
 SPEC CHECKSUMS:
   connectivity_plus: ddd7f30999e1faaef5967c23d5b6d503d10434db
+  cupertino_http: 1a3a0f163c1b26e7f1a293b33d476e0fde7a64ec
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
 
 PODFILE CHECKSUM: 819463e6a0290f5a72f145ba7cde16e8b6ef0796

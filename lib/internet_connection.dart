@@ -1,262 +1,424 @@
 part of 'internet_connection_checker.dart';
 
-/// A class for checking internet connectivity status.
+/// A utility class that checks the status of the internet connection.
 ///
-/// This class provides functionality to monitor and verify internet
-/// connectivity by checking reachability to various [Uri]s. It relies on the
-/// [connectivity_plus] package for listening to connectivity changes and the
-/// [http][http_link] package for making network requests.
-///
-/// [connectivity_plus]: https://pub.dev/packages/connectivity_plus
-/// [http_link]: https://pub.dev/packages/http
-///
-/// <br />
-///
-/// ## Usage
-///
-/// <hr />
-///
-/// ### Checking for internet connectivity
-///
-/// ```dart
-/// import 'package:internet_connection_checker/internet_connection_checker.dart';
-///
-/// bool result = await InternetConnectionChecker().hasConnection;
-/// ```
-///
-/// <br />
-///
-/// ### Listening for internet connectivity changes
-///
-/// ```dart
-/// import 'package:internet_connection_checker/internet_connection_checker.dart';
-///
-/// final listener = InternetConnectionChecker().onStatusChange.listen(
-///   (InternetConnectionStatus status) {
-///     switch (status) {
-///       case InternetConnectionStatus.connected:
-///         // The internet is now connected
-///         break;
-///       case InternetConnectionStatus.disconnected:
-///         // The internet is now disconnected
-///         break;
-///     }
-///   },
-/// );
-/// ```
-///
-/// Don't forget to cancel the subscription when it is no longer needed. This
-/// will prevent memory leaks and free up resources.
-///
-/// ```dart
-/// listener.cancel();
-/// ```
+/// The `InternetConnectionChecker` class provides a way to monitor the internet
+/// connection status of a device. It can emit statuses like connected,
+/// disconnected, and slow connection based on predefined criteria.
+/// The class is designed as a singleton to ensure consistent
+/// monitoring across the app.
 class InternetConnectionChecker {
-  /// Returns an instance of [InternetConnectionChecker].
+  /// Creates an instance of `InternetConnectionChecker`.
   ///
-  /// This is a singleton class, meaning that there is only one instance of it.
-  factory InternetConnectionChecker() => _instance;
-
-  /// Creates an instance of [InternetConnectionChecker].
+  /// This constructor is visible only for testing purposes and is
+  /// used to create a new instance of the checker with custom configurations.
   ///
-  /// The [checkInterval] defines the interval duration between status checks.
-  ///
-  /// The [customCheckOptions] specify the list of [Uri]s to check for
-  /// connectivity.
-  ///
-  /// The [useDefaultOptions] flag indicates whether to use the default [Uri]s.
-  /// - If [useDefaultOptions] is `true` (default), the default [Uri]s will be
-  /// used along with any [customCheckOptions] provided.
-  ///
-  /// - If [useDefaultOptions] is `false`, you must provide a non-empty
-  /// [customCheckOptions] list.
+  /// *Parameters:*
+  /// - `checkTimeout`: The timeout duration for checking connectivity.
+  ///    Default is 5 seconds.
+  /// - `checkInterval`: The interval between consecutive connectivity checks.
+  ///    Default is 5 seconds.
+  /// - `addresses`: A list of `AddressCheckOption` to check connectivity.
+  /// - `httpClient`: A custom `http.Client` for making network requests.
+  /// - `statusController`: A custom `StreamController` for managing
+  ///    connection status events.
+  /// - `connectivity`: A custom `Connectivity` instance for monitoring
+  ///    network changes.
+  /// - `slowConnectionConfig`: A `SlowConnectionConfig` instance for
+  ///    configuring slow connection detection.
+  /// - `requireAllAddressesToRespond`: Defaults to false, provides the output
+  ///    when any one of the addresses is reached. When it's true, it will
+  ///    provide the output after accessing all addresss sepecificed in
+  ///    [addresses].
   InternetConnectionChecker.createInstance({
-    this.checkInterval = const Duration(seconds: 10),
-    List<AddressCheckOption>? customCheckOptions,
-    bool useDefaultOptions = true,
-  }) : assert(
-          useDefaultOptions ||
-              (customCheckOptions?.isNotEmpty ?? false) == true,
-          'You must provide a list of options if you are not using the '
-          'default ones.',
-        ) {
-    _internetCheckOptions = <AddressCheckOption>[
-      if (useDefaultOptions) ..._defaultCheckOptions,
-      if (customCheckOptions != null) ...customCheckOptions,
-    ];
+    this.checkTimeout = InternetConnectionCheckerConstants.DEFAULT_TIMEOUT,
+    this.checkInterval = InternetConnectionCheckerConstants.DEFAULT_INTERVAL,
+    List<AddressCheckOption>? addresses,
+    http.Client? httpClient,
+    StreamController<InternetConnectionStatus>? statusController,
+    Connectivity? connectivity,
+    SlowConnectionConfig? slowConnectionConfig,
+    this.requireAllAddressesToRespond = false,
+  })  : assert(
+          addresses == null || addresses.isNotEmpty,
+          '''The "addresses" parameter cannot be an empty list. Provide at least one address or leave it null to use the default addresses.''',
+        ),
+        _httpClient = httpClient ?? http.Client(),
+        _connectivity = connectivity ?? Connectivity(),
+        enableToCheckForSlowConnection =
+            slowConnectionConfig?.enableToCheckForSlowConnection ?? false,
+        slowConnectionThreshold =
+            slowConnectionConfig?.slowConnectionThreshold ??
+                DEFAULT_SLOW_CONNECTION_THRESHOLD,
+        _statusController = statusController ??
+            StreamController<InternetConnectionStatus>.broadcast() {
+    this.addresses = addresses != null && addresses.isNotEmpty
+        ? addresses
+        : DEFAULT_ADDRESSES
+            .map(
+              (AddressCheckOption e) => AddressCheckOption(
+                uri: e.uri,
+                timeout: checkTimeout,
+              ),
+            )
+            .toList();
 
-    _statusController.onListen = _maybeEmitStatusUpdate;
-    _statusController.onCancel = _handleStatusChangeCancel;
+    _statusController
+      ..onListen = _startMonitoring
+      ..onCancel = _stopMonitoring;
   }
 
-  /// The default list of [Uri]s used for checking internet reachability.
-  final List<AddressCheckOption> _defaultCheckOptions = <AddressCheckOption>[
-    AddressCheckOption(
-      uri: Uri.parse(
-        'https://1.1.1.1',
-      ),
-    ),
-    AddressCheckOption(
-      uri: Uri.parse(
-        'https://icanhazip.com/',
-      ),
-    ),
-    AddressCheckOption(
-      uri: Uri.parse(
-        'https://jsonplaceholder.typicode.com/todos/1',
-      ),
-    ),
-    AddressCheckOption(
-      uri: Uri.parse(
-        'https://reqres.in/api/users/1',
-      ),
-    ),
-  ];
+  /// Whether to check all addresses for internet connectivity.
+  bool requireAllAddressesToRespond;
 
-  /// The list of [Uri]s used for checking internet reachability.
-  late List<AddressCheckOption> _internetCheckOptions;
-
-  /// The controller for the internet connection status stream.
-  final StreamController<InternetConnectionStatus> _statusController =
-      StreamController<InternetConnectionStatus>.broadcast();
-
-  /// The singleton instance of [InternetConnectionChecker].
+  /// Singleton instance of `InternetConnectionChecker`.
   static final InternetConnectionChecker _instance =
       InternetConnectionChecker.createInstance();
 
-  /// The duration between consecutive status checks.
-  ///
-  /// Defaults to 5 seconds.
-  final Duration checkInterval;
+  /// Access the singleton instance of `InternetConnectionChecker`.
+  static InternetConnectionChecker get instance => _instance;
 
-  /// The last known internet connection status result.
-  InternetConnectionStatus? _lastStatus;
+  /// Short form to access the instance of `InternetConnectionChecker`.
+  static InternetConnectionChecker get I => _instance;
 
-  /// The handle for the timer used for periodic status checks.
+  /// Default timeout duration (5 seconds) for checking connectivity.
+  // ignore: constant_identifier_names
+  static const Duration DEFAULT_TIMEOUT =
+      InternetConnectionCheckerConstants.DEFAULT_TIMEOUT;
+
+  /// Default interval (5 seconds) between consecutive connectivity checks.
+  // ignore: constant_identifier_names
+  static const Duration DEFAULT_INTERVAL =
+      InternetConnectionCheckerConstants.DEFAULT_INTERVAL;
+
+  /// Default threshold duration to consider a connection as "slow".
+  // ignore: constant_identifier_names
+  static const Duration DEFAULT_SLOW_CONNECTION_THRESHOLD =
+      InternetConnectionCheckerConstants.DEFAULT_SLOW_CONNECTION_THRESHOLD;
+
+  /// Default list of addresses to check connectivity against.
+  // ignore: non_constant_identifier_names
+  static final List<AddressCheckOption> DEFAULT_ADDRESSES =
+      InternetConnectionCheckerConstants.DEFAULT_ADDRESSES;
+
+  late List<AddressCheckOption> _addresses;
+  final http.Client _httpClient;
+  final Connectivity _connectivity;
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
   Timer? _timerHandle;
+  InternetConnectionStatus? _lastStatus;
+  final StreamController<InternetConnectionStatus> _statusController;
 
-  /// Checks if the [Uri] specified in [option] is reachable.
-  ///
-  /// Returns a [Future] that completes with an [AddressCheckResult] indicating
-  /// whether the host is reachable or not.
-  Future<AddressCheckResult> _checkReachabilityFor(
-    AddressCheckOption option,
-  ) async {
-    try {
-      final http.Response response = await compute(
-        (_) {
-          return http
-              .head(option.uri, headers: option.headers)
-              .timeout(option.timeout);
-        },
-        null,
-      );
+  /// Indicates whether to check for slow connections.
+  bool enableToCheckForSlowConnection;
 
-      return AddressCheckResult(
-        option: option,
-        isSuccess: option.responseStatusFn(response),
-      );
-    } catch (_) {
-      return AddressCheckResult(
-        option: option,
-        isSuccess: false,
-      );
-    }
+  /// The threshold duration to consider a connection as "slow".
+  Duration slowConnectionThreshold;
+
+  /// The timeout duration for connectivity checks.
+  Duration checkTimeout;
+
+  /// The interval between consecutive connectivity checks.
+  Duration checkInterval;
+
+  /// Gets the list of addresses to check connectivity against.
+  List<AddressCheckOption> get addresses => _addresses;
+
+  /// Sets a new list of addresses to check connectivity against.
+  set addresses(List<AddressCheckOption> value) {
+    _addresses = List<AddressCheckOption>.unmodifiable(value);
+    _maybeEmitStatusUpdate();
   }
 
-  /// Checks if there is internet access by verifying connectivity to the
-  /// specified [Uri]s.
-  ///
-  /// Returns a [Future] that completes with a boolean value indicating
-  /// whether internet access is available or not.
-  Future<bool> get hasConnection async {
-    final Completer<bool> completer = Completer<bool>();
-    int length = _internetCheckOptions.length;
+  /// A stream of `InternetConnectionStatus` that emits the
+  /// current connection status.
+  Stream<InternetConnectionStatus> get onStatusChange =>
+      _statusController.stream;
 
-    for (final AddressCheckOption option in _internetCheckOptions) {
-      unawaited(
-        _checkReachabilityFor(option).then((AddressCheckResult result) {
-          length -= 1;
+  /// Indicates whether there are any active listeners to the
+  /// connection status stream.
+  bool get hasListeners => _statusController.hasListener;
 
-          if (completer.isCompleted) return;
-
-          if (result.isSuccess) {
-            completer.complete(true);
-          } else if (length == 0) {
-            completer.complete(false);
-          }
-        }),
-      );
-    }
-
-    return completer.future;
-  }
-
-  /// Returns the current internet connection status.
-  ///
-  /// Returns a [Future] that completes with the [InternetConnectionStatus] indicating
-  /// the current internet connection status.
-  Future<InternetConnectionStatus> get connectionStatus async =>
-      await hasConnection
-          ? InternetConnectionStatus.connected
-          : InternetConnectionStatus.disconnected;
-
-  /// Internal method for emitting status updates.
-  ///
-  /// Updates the status and emits it if there are listeners.
-  Future<void> _maybeEmitStatusUpdate() async {
-    _startListeningToConnectivityChanges();
-    _timerHandle?.cancel();
-
-    final InternetConnectionStatus currentStatus = await connectionStatus;
-
-    if (!_statusController.hasListener) return;
-
-    if (_lastStatus != currentStatus && _statusController.hasListener) {
-      _statusController.add(currentStatus);
-    }
-
-    _timerHandle = Timer(checkInterval, _maybeEmitStatusUpdate);
-
-    _lastStatus = currentStatus;
-  }
-
-  /// Handles cancellation of status change events.
-  ///
-  /// Cancels the timer and resets the last status.
-  void _handleStatusChangeCancel() {
-    if (_statusController.hasListener) return;
-
-    _connectivitySubscription?.cancel().then((_) {
-      _connectivitySubscription = null;
+  /// Method to create futures for address checks, isolated for unit testing.
+  @visibleForTesting
+  Iterable<Future<AddressCheckResult>> createAddressCheckFutures(
+    List<AddressCheckOption> addresses,
+  ) {
+    return addresses.map((AddressCheckOption address) async {
+      final result = await isHostReachable(address);
+      return result;
     });
+  }
+
+  /// Checks if all or any addresses are reachable based on the configuration.
+  Future<bool> _checkConnectivity() async {
+    final Iterable<Future<AddressCheckResult>> futures =
+        createAddressCheckFutures(addresses);
+
+    if (!requireAllAddressesToRespond) {
+      try {
+        // Ensure at least one successful result, even if others fail
+        final List<bool> results = await Future.wait(
+          futures.map((future) => future.then((result) => result.isSuccess)),
+        );
+
+        // Return true if any result is successful
+        return results.contains(true);
+      } catch (e) {
+        return false; // If all futures fail, return false
+      }
+    } else {
+      final List<AddressCheckResult> results = await Future.wait(futures);
+      return results.every((result) => result.isSuccess);
+    }
+  }
+
+  @visibleForTesting
+
+  /// Checks if all or any addresses are reachable based on the configuration.
+  Future<bool> checkConnectivity() => _checkConnectivity();
+
+  /// Checks if there is an active internet connection.
+  ///
+  /// This method checks connectivity by making requests
+  /// to the configured addresses.
+  /// If `requireAllAddressesToRespond` is enabled, it validates all addresses.
+  Future<bool> get hasConnection async {
+    final bool isConnected = await _checkConnectivity();
+
+    final InternetConnectionStatus newStatus = isConnected
+        ? InternetConnectionStatus.connected
+        : InternetConnectionStatus.disconnected;
+
+    // Emit status immediately if it has changed
+    if (_lastStatus != newStatus) {
+      _emitStatus(newStatus);
+    }
+
+    return isConnected;
+  }
+
+  /// Gets the current internet connection status.
+  Future<InternetConnectionStatus> get connectionStatus async {
+    final bool isConnected = await _checkConnectivity();
+    return isConnected
+        ? InternetConnectionStatus.connected
+        : InternetConnectionStatus.disconnected;
+  }
+
+  /// Checks if a specific host is reachable.
+  ///
+  /// This method sends a request to the given [option] and
+  /// determines if the host is reachable.
+  /// If slow connection detection is enabled, it also
+  /// checks if the response time exceeds
+  /// the configured threshold.
+  Future<AddressCheckResult> isHostReachable(AddressCheckOption option) async {
+    final Stopwatch stopwatch = Stopwatch()..start();
+    try {
+      final http.Response response =
+          await _httpClient.head(option.uri).timeout(option.timeout);
+      stopwatch.stop();
+
+      /*
+      This condition considers any valid HTTP response
+      (including informational, redirection, client error,
+      and server error status codes) as an indication that
+      the internet is available.
+
+      Even if the server returns an error (e.g., 404 Not Found, 
+      500 Internal Server Error), it proves that the internet connection
+      is active because the device successfully communicated with the server.
+      */
+      if (response.statusCode >= 100 && response.statusCode < 600) {
+        if (enableToCheckForSlowConnection &&
+            stopwatch.elapsed > slowConnectionThreshold) {
+          _emitStatus(InternetConnectionStatus.slow);
+        } else {
+          _emitStatus(
+            InternetConnectionStatus.connected,
+          );
+        }
+      } else {
+        _emitStatus(InternetConnectionStatus.disconnected);
+      }
+
+      return AddressCheckResult(
+        option,
+        isSuccess: response.statusCode >= 100 && response.statusCode < 600,
+      );
+    } on SocketException {
+      _emitStatus(InternetConnectionStatus.disconnected);
+      return AddressCheckResult(option, isSuccess: false);
+    } on http.ClientException {
+      _emitStatus(InternetConnectionStatus.disconnected);
+      return AddressCheckResult(option, isSuccess: false);
+    } on TimeoutException {
+      _emitStatus(InternetConnectionStatus.disconnected);
+
+      return AddressCheckResult(option, isSuccess: false);
+    } catch (e) {
+      return AddressCheckResult(option, isSuccess: false);
+    }
+  }
+
+  /// Triggers an immediate status update based on
+  /// the current connection status.
+  @visibleForTesting
+  Future<void> maybeEmitStatusUpdate({
+    Timer? timer,
+    Function? cancelCallback,
+  }) async {
+    await _maybeEmitStatusUpdate(timer: timer, cancelCallback: cancelCallback);
+  }
+
+  /// Emits the given connection status to the status stream.
+  void emitStatus(InternetConnectionStatus newStatus) {
+    return _emitStatus(newStatus);
+  }
+
+  /// Internal method to emit the connection status if it has changed.
+  void _emitStatus(InternetConnectionStatus newStatus) {
+    if (_lastStatus != newStatus && hasListeners) {
+      _statusController.add(newStatus);
+    }
+    _lastStatus = newStatus;
+  }
+
+  /// Schedules the next status update check.
+  Future<void> _maybeEmitStatusUpdate({
+    Timer? timer,
+    Function? cancelCallback,
+  }) async {
+    _timerHandle?.cancel();
+    // ignore: avoid_dynamic_calls
+    cancelCallback?.call() ?? timer?.cancel();
+
+    final bool isConnected = await _checkConnectivity();
+    final InternetConnectionStatus status = isConnected
+        ? InternetConnectionStatus.connected
+        : InternetConnectionStatus.disconnected;
+
+    _emitStatus(status);
+    _scheduleNextStatusCheck();
+  }
+
+  /// Schedules the next status check based on the configured interval.
+  void _scheduleNextStatusCheck() {
+    if (hasListeners) {
+      _timerHandle = Timer(checkInterval, _maybeEmitStatusUpdate);
+    }
+  }
+
+  /// Starts monitoring the connectivity changes and triggers status updates.
+  @visibleForTesting
+  void startMonitoring() {
+    return _startMonitoring();
+  }
+
+  /// Internal method to start monitoring the connectivity changes.
+  void _startMonitoring() {
+    _connectivitySubscription = _connectivity.onConnectivityChanged
+        .listen((List<ConnectivityResult> connectivityList) async {
+      if (connectivityList.contains(ConnectivityResult.none)) {
+        _emitStatus(InternetConnectionStatus.disconnected);
+      } else if (connectivityList.any(
+        (ConnectivityResult result) =>
+            result != ConnectivityResult.bluetooth &&
+            (result == ConnectivityResult.wifi ||
+                result == ConnectivityResult.mobile ||
+                result == ConnectivityResult.ethernet ||
+                result == ConnectivityResult.vpn ||
+                result == ConnectivityResult.other),
+      )) {
+        await _maybeEmitStatusUpdate();
+      }
+    });
+
+    _maybeEmitStatusUpdate(); // Initial status update
+  }
+
+  /// Stops monitoring the connectivity changes and
+  /// cancels any scheduled checks.
+  void _stopMonitoring() {
+    _connectivitySubscription?.cancel();
     _timerHandle?.cancel();
     _timerHandle = null;
     _lastStatus = null;
   }
 
-  /// The result of the last attempt to check the internet status.
-  InternetConnectionStatus? get lastTryResults => _lastStatus;
+  /// Cancels any scheduled status updates.
+  @visibleForTesting
+  void cancelStatusUpdate() {
+    return _cancelStatusUpdate();
+  }
 
-  /// Stream that emits internet connection status changes.
-  Stream<InternetConnectionStatus> get onStatusChange =>
-      _statusController.stream;
+  /// Internal method to cancel any scheduled status updates.
+  void _cancelStatusUpdate() {
+    _timerHandle?.cancel();
+    _timerHandle = null;
+    _lastStatus = null;
+  }
 
-  /// Connectivity subscription.
-  StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
-
-  /// Starts listening to connectivity changes from [connectivity_plus] package
-  /// using the [Connectivity.onConnectivityChanged] stream.
+  /// Allows configuration of the checker.
   ///
-  /// [connectivity_plus]: https://pub.dev/packages/connectivity_plus
-  void _startListeningToConnectivityChanges() {
-    if (_connectivitySubscription != null) return;
-    _connectivitySubscription = Connectivity().onConnectivityChanged.listen(
-      (_) {
-        if (_statusController.hasListener) {
-          _maybeEmitStatusUpdate();
-        }
-      },
-    );
+  /// This method allows you to reconfigure the checker with new settings.
+  /// You can change the timeout, interval, addresses to check, and the
+  /// slow connection configuration.
+  void configure({
+    Duration? timeout,
+    Duration? interval,
+    List<AddressCheckOption>? addresses,
+    SlowConnectionConfig? slowConnectionConfig, // Optional
+  }) {
+    if (timeout != null) {
+      checkTimeout = timeout;
+    }
+    if (interval != null) {
+      checkInterval = interval;
+    }
+    if (addresses != null) {
+      this.addresses = addresses;
+    }
+
+    // Apply the new slow connection configuration if provided
+    if (slowConnectionConfig != null) {
+      enableToCheckForSlowConnection =
+          slowConnectionConfig.enableToCheckForSlowConnection;
+      slowConnectionThreshold = slowConnectionConfig.slowConnectionThreshold;
+    }
+
+    _maybeEmitStatusUpdate(); // Apply the new configuration immediately
+  }
+
+  /// Gets the timer handle for the scheduled status updates.
+  @visibleForTesting
+  Timer? get timerHandle => _timerHandle;
+
+  /// Gets the last emitted connection status.
+  @visibleForTesting
+  InternetConnectionStatus? get lastStatus => _lastStatus;
+
+  /// Sets the last emitted connection status for testing purposes.
+  @visibleForTesting
+  // ignore: avoid_setters_without_getters
+  set setLastStatus(InternetConnectionStatus status) {
+    _lastStatus = status;
+  }
+
+  /// Sets the last emitted connection status for testing purposes.
+  @visibleForTesting
+  // ignore: avoid_setters_without_getters
+  set setRequireAllAddressesToRespond(bool value) {
+    requireAllAddressesToRespond = value;
+  }
+
+  /// Disposes of the singleton instance and cleans up resources.
+  ///
+  /// This method stops monitoring the connectivity changes, cancels any
+  /// scheduled status updates, and closes the status stream.
+  void dispose() {
+    _stopMonitoring(); // Stops monitoring and cancels the timer
+    _statusController.close(); // Closes the stream controller
   }
 }

@@ -8,24 +8,25 @@ import 'package:flutter/material.dart';
 // Package imports:
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
-import 'package:internet_connection_checker_example/blocs/custom_url_internet_cubit/custom_url_internet_cubit.dart';
 
 // Project imports:
+import 'package:internet_connection_checker_example/blocs/slow_internet_cubit/slow_internet_cubit.dart';
 
-/// A `StatelessWidget` that checks the internet connection status using custom URIs.
+/// A `StatelessWidget` that listens to the internet connection status with a focus on slow connections.
 ///
-/// The `CustomURIInternetConnectionCheckerPage` class is a `StatelessWidget` that
-/// demonstrates how to use custom URIs with the `InternetConnectionChecker` package
-/// to check the internet connection status. The current connection status is displayed
-/// on the screen in real-time.
-class CustomURIInternetConnectionCheckerPage extends StatelessWidget {
-  const CustomURIInternetConnectionCheckerPage({super.key});
+/// The `SlowInternetConnectionStreamListenerPage` class is a `StatelessWidget` that
+/// demonstrates how to continuously listen for changes in the internet connection status
+/// using a `StreamSubscription`, with specific attention to detecting slow connections.
+/// The current connection status is displayed in real-time as it changes, including
+/// indications of slow connections.
+class SlowInternetConnectionStreamListenerPage extends StatelessWidget {
+  const SlowInternetConnectionStreamListenerPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Custom URIs'),
+        title: const Text('Connection Stream Listener'),
       ),
       body: Center(
         child: Padding(
@@ -34,8 +35,10 @@ class CustomURIInternetConnectionCheckerPage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               const Text(
-                'This example shows how to use custom URIs to check the internet '
-                'connection status.',
+                'This page illustrates how to listen for the internet connection '
+                'status using a StreamSubscription.\n\n'
+                'Changes to the internet connection status are listened to and '
+                'reflected in this example.',
                 textAlign: TextAlign.center,
               ),
               const Divider(
@@ -43,8 +46,8 @@ class CustomURIInternetConnectionCheckerPage extends StatelessWidget {
                 thickness: 2.0,
               ),
               const Text('Connection Status:'),
-              // BlocBuilder listens to the InternetCubit to reflect the current connection status
-              BlocBuilder<CustomUrlInternetCubit, InternetConnectionStatus?>(
+              // BlocBuilder listens to the SlowInternetCubit to reflect the current connection status
+              BlocBuilder<SlowInternetCubit, InternetConnectionStatus?>(
                 builder: (context, connectionStatus) {
                   if (connectionStatus == null) {
                     return const CircularProgressIndicator.adaptive();

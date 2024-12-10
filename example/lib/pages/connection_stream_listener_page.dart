@@ -1,19 +1,13 @@
-// Dart Packages
-
-// Flutter Packages
-
-// Flutter imports:
 import 'package:flutter/material.dart';
-
-// Package imports:
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
-
-// Project imports:
 import 'package:internet_connection_checker_example/blocs/internet_cubit/internet_cubit.dart';
 
-// This Package
-
+/// A `StatelessWidget` that listens to the internet connection status using a `StreamSubscription`.
+///
+/// The `ConnectionStreamListenerPage` class is a `StatelessWidget` that demonstrates
+/// how to continuously listen for changes in the internet connection status using a
+/// `StreamSubscription`. The current connection status is displayed in real-time as it changes.
 class ConnectionStreamListenerPage extends StatelessWidget {
   const ConnectionStreamListenerPage({super.key});
 
@@ -30,9 +24,9 @@ class ConnectionStreamListenerPage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               const Text(
-                'This page illustrates shows how to listen for the internet connection '
+                'This page illustrates how to listen for the internet connection '
                 'status using a StreamSubscription.\n\n'
-                'Changes to the internet connection status are listened and '
+                'Changes to the internet connection status are listened to and '
                 'reflected in this example.',
                 textAlign: TextAlign.center,
               ),
@@ -41,6 +35,7 @@ class ConnectionStreamListenerPage extends StatelessWidget {
                 thickness: 2.0,
               ),
               const Text('Connection Status:'),
+              // BlocBuilder listens to the InternetCubit to reflect the current connection status
               BlocBuilder<InternetCubit, InternetConnectionStatus?>(
                 builder: (context, connectionStatus) {
                   if (connectionStatus == null) {
