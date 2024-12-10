@@ -90,7 +90,7 @@ void main() {
       expect(result, 'AddressCheckOption(uri: $uri, timeout: 0:00:10.000000)');
     });
 
-    /// Test case to verify the string representation of an instance 
+    /// Test case to verify the string representation of an instance
     /// with the default timeout.
     test('should return correct string representation with default timeout',
         () {
@@ -101,7 +101,7 @@ void main() {
       // Act: Get the string representation of the option instance.
       final result = option.toString();
 
-      // Assert: Verify that the string representation correctly 
+      // Assert: Verify that the string representation correctly
       // includes the default timeout.
       expect(
         result,

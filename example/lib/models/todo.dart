@@ -41,7 +41,7 @@ class Todo {
   /// *Parameters:*
   /// - `json`: A `Map<String, dynamic>` representing the JSON object.
   ///
-  /// *Returns:* 
+  /// *Returns:*
   /// - A `Todo` object initialized with the values from the JSON map.
   factory Todo.fromJson(Map<String, dynamic> json) {
     return Todo(
