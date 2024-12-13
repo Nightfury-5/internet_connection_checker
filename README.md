@@ -14,6 +14,7 @@
 
 - [🌍 Internet Connection Checker](#-internet-connection-checker)
     - [Table of contents](#table-of-contents)
+  - [Usecases](#usecases-of-this-library)
   - [Description](#description)
   - [Demo](#demo)
   - [Quick start](#quick-start)
@@ -25,6 +26,34 @@
     - [Slow Internet Connectivity detection ](#enable-detection-for-slow-internet-connectivity)
     - [Using requireAllAddressesToRespond ](#Using-requirealladdressestorespond)  
   - [Features and bugs](#features-and-bugs)
+
+## Usecases of this library:
+
+- **Backend Server Checks**: 
+Seamlessly verify internet connectivity and server reachability using built-in default addresses or by configuring custom backend server URLs tailored to your application needs.
+
+- **Slow Internet Detection**: 
+Efficiently detect and manage slow internet connections on the user's device to ensure a smooth user experience.
+
+- **Auto Refresh**: 
+ Automatically refresh pages in your app when the internet becomes available, providing a dynamic and seamless user experience.  
+
+  For detailed implementation, refer to the example files:  
+  ```
+  example/lib/blocs/fetch_todos_cubit.dart
+  example/lib/pages/auto_refresh_when_network_is_available_page.dart
+  ```
+
+### 💡 Important Note  
+To prevent memory leaks, always dispose of the `InternetConnectionChecker` instance when it's no longer needed. For example, in a `StatefulWidget`'s `dispose` method:
+
+```dart
+@override
+void dispose() {
+  connectionChecker.dispose(); // Dispose of the InternetConnectionChecker instance
+  super.dispose();
+}
+```
 
 ## Description
 

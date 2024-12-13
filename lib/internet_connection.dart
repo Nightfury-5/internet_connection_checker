@@ -215,6 +215,7 @@ class InternetConnectionChecker {
   /// the configured threshold.
   Future<AddressCheckResult> isHostReachable(AddressCheckOption option) async {
     final Stopwatch stopwatch = Stopwatch()..start();
+
     try {
       final http.Response response =
           await _httpClient.head(option.uri).timeout(option.timeout);
@@ -230,6 +231,7 @@ class InternetConnectionChecker {
       500 Internal Server Error), it proves that the internet connection
       is active because the device successfully communicated with the server.
       */
+
       if (response.statusCode >= 100 && response.statusCode < 600) {
         if (enableToCheckForSlowConnection &&
             stopwatch.elapsed > slowConnectionThreshold) {
@@ -247,16 +249,6 @@ class InternetConnectionChecker {
         option,
         isSuccess: response.statusCode >= 100 && response.statusCode < 600,
       );
-    } on SocketException {
-      _emitStatus(InternetConnectionStatus.disconnected);
-      return AddressCheckResult(option, isSuccess: false);
-    } on http.ClientException {
-      _emitStatus(InternetConnectionStatus.disconnected);
-      return AddressCheckResult(option, isSuccess: false);
-    } on TimeoutException {
-      _emitStatus(InternetConnectionStatus.disconnected);
-
-      return AddressCheckResult(option, isSuccess: false);
     } catch (e) {
       return AddressCheckResult(option, isSuccess: false);
     }

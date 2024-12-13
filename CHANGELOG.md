@@ -1,3 +1,8 @@
+## 3.0.1
+
+- docs: Update README.md.
+- chore: Update Package to support latest dependencies
+
 ## 3.0.0
 
 - feat: Added detection for slow internet connections. For detailed usage, refer to the example folder. ([#32](https://github.com/RounakTadvi/internet_connection_checker/issues/32))
