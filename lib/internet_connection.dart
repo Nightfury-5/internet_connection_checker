@@ -158,7 +158,7 @@ class InternetConnectionChecker {
     if (!requireAllAddressesToRespond) {
       try {
         // Ensure at least one successful result, even if others fail
-        final stream = Stream.fromFutures(
+        final Stream<bool> stream = Stream.fromFutures(
           futures.map((future) => future.then((result) => result.isSuccess)),
         );
 
