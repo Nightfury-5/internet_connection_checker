@@ -78,7 +78,7 @@ Add the following dependencies to your `pubspec.yaml`:
 
 ```
 dependencies:
-  internet_connection_checker: ^2.0.0
+  internet_connection_checker: ^3.0.0
 ```
 
 ## Android Configuration
