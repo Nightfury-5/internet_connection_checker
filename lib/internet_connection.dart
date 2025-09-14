@@ -158,12 +158,12 @@ class InternetConnectionChecker {
     if (!requireAllAddressesToRespond) {
       try {
         // Ensure at least one successful result, even if others fail
-        final List<bool> results = await Future.wait(
+        final Stream<bool> stream = Stream.fromFutures(
           futures.map((future) => future.then((result) => result.isSuccess)),
         );
 
-        // Return true if any result is successful
-        return results.contains(true);
+        // Return true as soon as any result is successful
+        return await stream.any((result) => result == true);
       } catch (e) {
         return false; // If all futures fail, return false
       }
