@@ -8,11 +8,11 @@ part of 'internet_connection_checker.dart';
 class InternetConnectionCheckerConstants {
   /// Default timeout duration (5 seconds) for checking connectivity.
   // ignore: constant_identifier_names
-  static const Duration DEFAULT_TIMEOUT = Duration(seconds: 5);
+  static const Duration DEFAULT_TIMEOUT = Duration(seconds: 2);
 
   /// Default interval (5 seconds) between consecutive connectivity checks.
   // ignore: constant_identifier_names
-  static const Duration DEFAULT_INTERVAL = Duration(seconds: 5);
+  static const Duration DEFAULT_INTERVAL = Duration(seconds: 2);
 
   /// Default threshold duration to consider a connection as "slow".
   // ignore: constant_identifier_names
@@ -24,7 +24,7 @@ class InternetConnectionCheckerConstants {
 
   /// URL 1
   // ignore: constant_identifier_names
-  static const String URL_1 = 'https://dummyapi.online/api/movies/1';
+  static const String URL_1 = 'https://one.one.one.one';
 
   /// URL 2
   // ignore: constant_identifier_names
@@ -34,6 +34,10 @@ class InternetConnectionCheckerConstants {
   // ignore: constant_identifier_names
   static const String URL_3 = 'https://fakestoreapi.com/products/1';
 
+  /// URL 4
+  // ignore: constant_identifier_names
+  static const String URL_4 = 'https://icanhazip.com/';
+
   /// Default list of addresses to check connectivity against.
   // ignore: non_constant_identifier_names
   static final List<AddressCheckOption> DEFAULT_ADDRESSES =
@@ -41,5 +45,6 @@ class InternetConnectionCheckerConstants {
     AddressCheckOption(uri: Uri.parse(URL_1)),
     AddressCheckOption(uri: Uri.parse(URL_2)),
     AddressCheckOption(uri: Uri.parse(URL_3)),
+    AddressCheckOption(uri: Uri.parse(URL_4)),
   ]);
 }
